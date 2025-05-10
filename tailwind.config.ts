@@ -32,6 +32,34 @@ const config: Config = {
         warning: "#FFC107",
         error: "#F44336",
         pastelBlue: "#4A6FA5",
+        // New custom colors
+        custom: {
+          purple: {
+            light: "#E6E6FA",
+            DEFAULT: "#9370DB",
+            dark: "#483D8B",
+          },
+          teal: {
+            light: "#E0F2F1",
+            DEFAULT: "#009688",
+            dark: "#004D40",
+          },
+          coral: {
+            light: "#FFE4E1",
+            DEFAULT: "#FF7F50",
+            dark: "#CD5B45",
+          },
+          mint: {
+            light: "#F5FFFA",
+            DEFAULT: "#98FB98",
+            dark: "#90EE90",
+          },
+          slate: {
+            light: "#F8FAFC",
+            DEFAULT: "#64748B",
+            dark: "#1E293B",
+          },
+        },
       },
     },
   },

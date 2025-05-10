@@ -25,7 +25,7 @@ function ImoportantInfoSection() {
         <span className="w-2 h-2 rounded-full bg-gray-300" />
       </div>
 
-      {/* Navigation Arrows (mocked) */}
+      {/* Navigation Arrows */}
       <div className="absolute top-1/2 left-2 -translate-y-1/2 text-gray-400 cursor-pointer">
         <span>&lsaquo;</span>
       </div>

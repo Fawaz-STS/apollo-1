@@ -55,46 +55,61 @@ export const RidingsSection = () => {
   }, []);
 
   return (
-    <div className="p-4 h-full overflow-y-auto">
+    <div className="my-8">
       {tableData && (
-        <div className="overflow-x-auto overflow-y-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr>
-                {getVisibleColumns(
-                  tableData.headers,
-                  tableData.rows
-                ).visibleHeaders.map((header, index) => (
-                  <th
-                    key={index}
-                    className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+        <div className="grid grid-cols-1">
+          <div className="overflow-x-auto">
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${
+                  getVisibleColumns(tableData.headers, tableData.rows)
+                    .visibleHeaders.length
+                }, minmax(0, 1fr))`,
+              }}
+            >
+              {getVisibleColumns(
+                tableData.headers,
+                tableData.rows
+              ).visibleHeaders.map((header, index) => (
+                <div
+                  key={index}
+                  className="px-6 py-3 border-b border-gray-200 bg-red-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {header}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="overflow-y-auto h-[500px]">
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${
+                  getVisibleColumns(tableData.headers, tableData.rows)
+                    .visibleHeaders.length
+                }, minmax(0, 1fr))`,
+              }}
+            >
               {getVisibleColumns(
                 tableData.headers,
                 tableData.rows
               ).visibleRows.map((row, rowIndex) => (
-                <tr
-                  key={rowIndex}
-                  className={rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                >
+                <React.Fragment key={rowIndex}>
                   {row.map((cell, cellIndex) => (
-                    <td
+                    <div
                       key={cellIndex}
-                      className="px-6 py-4 text-sm text-gray-500 border-b border-gray-200"
+                      className={`px-6 py-4 text-sm text-gray-500 border-b border-gray-200 ${
+                        rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+                      }`}
                     >
                       {cell}
-                    </td>
+                    </div>
                   ))}
-                </tr>
+                </React.Fragment>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       )}
     </div>
