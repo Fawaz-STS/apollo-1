@@ -8,41 +8,41 @@ export const VoteOverview = () => {
 
   const currentVoteData = [
     {
-      party: "Conservative",
-      color: "#4A6FA5",
+      party: "Conserv.",
+      color: "#142f52",
       votes: "5,556,835",
       votePcnt: "32.6%",
       change: "5.3",
     },
     {
       party: "Liberal",
-      color: "#DB5A58",
+      color: "#d41f27",
       votes: "5,742,635",
       votePcnt: "33.7%",
       change: "4.2",
     },
     {
       party: "NDP",
-      color: "#F4A261",
+      color: "#f58220",
       votes: "3,035,715",
       votePcnt: "17.8%",
       change: "1.6",
     },
     {
       party: "Bloc",
-      color: "#6EB6C5",
+      color: "#51a5e1",
       votes: "1,301,496",
       votePcnt: "7.6%",
       change: "0.3",
     },
     {
       party: "Green",
-      color: "#84C69B",
+      color: "#20a242",
       votes: "398,746",
       votePcnt: "2.3%",
       change: "0.1",
     },
-    { party: "Other", votes: "100,000" },
+    { party: "Other", votes: "100,000", color: "#808080" },
   ];
 
   const historicalVoteData = [
@@ -90,19 +90,19 @@ export const VoteOverview = () => {
   return (
     <div className="flex flex-col px-2">
       <div className="flex flex-row pb-2 justify-between items-end">
-        <h1 className="text-xl text-left font-bold">Totals - Vote Count</h1>
+        <h1 className="text-xl text-left">Totals - Vote Count</h1>
         <div className="flex flex-row space-x-2 text-sm font-medium">
           <button
             onClick={() => setView("current")}
             className={`px-3 py-1 rounded ${
               view === "current"
-                ? "bg-blue-600 text-white"
+                ? "bg-[#808080] text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
             Current
           </button>
-          <button
+          {/* <button
             onClick={() => setView("history")}
             className={`px-3 py-1 rounded ${
               view === "history"
@@ -111,7 +111,7 @@ export const VoteOverview = () => {
             }`}
           >
             History
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -123,7 +123,7 @@ export const VoteOverview = () => {
           >
             <div className="text-left">
               <div className="flex items-center space-x-2">
-                <Checkbox color={data.color} />
+                <Checkbox color={data.color} checked={true} />
                 <span className="whitespace-nowrap">{data.party}</span>
               </div>
             </div>
