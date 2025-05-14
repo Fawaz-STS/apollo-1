@@ -74,7 +74,7 @@ export const RidingsSection = () => {
               ).visibleHeaders.map((header, index) => (
                 <div
                   key={index}
-                  className="px-6 py-3 border-b border-gray-200 bg-red-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 border-b border-gray-200 bg-[#808080] text-left text-xs font-medium text-white uppercase tracking-wider"
                 >
                   {header}
                 </div>
@@ -91,23 +91,42 @@ export const RidingsSection = () => {
                 }, minmax(0, 1fr))`,
               }}
             >
-              {getVisibleColumns(
-                tableData.headers,
-                tableData.rows
-              ).visibleRows.map((row, rowIndex) => (
-                <React.Fragment key={rowIndex}>
-                  {row.map((cell, cellIndex) => (
-                    <div
-                      key={cellIndex}
-                      className={`px-6 py-4 text-sm text-gray-500 border-b border-gray-200 ${
-                        rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
-                      }`}
-                    >
-                      {cell}
-                    </div>
-                  ))}
-                </React.Fragment>
-              ))}
+              {tableData.rows.map((fullRow, rowIndex) => {
+                const visibleRow = fullRow.filter(
+                  (_, i) => !excludedColumns.includes(i)
+                );
+                const name = fullRow[1]; // first column (name)
+                const url = fullRow[10]; // hidden column (link)
+
+                return (
+                  <React.Fragment key={rowIndex}>
+                    {visibleRow.map((cell, cellIndex) => {
+                      const isFirstVisibleCell = cellIndex === 0;
+
+                      return (
+                        <div
+                          key={cellIndex}
+                          className={`px-6 py-4 text-sm text-gray-500 border-b border-gray-200 ${
+                            rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+                          }`}
+                        >
+                          {isFirstVisibleCell && url ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              className="text-blue-600 underline"
+                            >
+                              {name}
+                            </a>
+                          ) : (
+                            cell
+                          )}
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
         </div>

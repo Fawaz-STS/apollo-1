@@ -47,7 +47,7 @@ export const SeatsTotals = () => {
   return (
     <div className="flex flex-col px-2">
       <div className="flex flex-row pb-2 justify-between items-end">
-        <h1 className="text-xl text-left ">Totals - Vote Count</h1>
+        <h1 className="text-xl text-left ">Totals - Seat Count</h1>
         <div className="flex flex-row space-x-2 text-sm font-medium ">
           <button
             onClick={() => setView("current")}

@@ -60,6 +60,13 @@ const config: Config = {
             dark: "#1E293B",
           },
         },
+        parties: {
+          conservative: "#142f52",
+          Liberal: "#d41f27",
+          NDP: "#f58220",
+          Green: "#20a242",
+          Bloc: "#51a5e1",
+        },
       },
     },
   },

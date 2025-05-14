@@ -7,10 +7,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { text } from "stream/consumers";
 
 export default function Header() {
-  const inactiveLinks = ["Canada", "USA", "International", "Polling", "News"];
-  const activeLinks = ["About", "Contact"];
+  const links = [
+    { text: "Home", link: "/" },
+    { text: "Canada", link: "/canada" },
+    { text: "USA" },
+    { text: "International" },
+    { text: "Polling" },
+    { text: "News" },
+    { text: "About", link: "/about" },
+    { text: "Contact", link: "/contact" },
+  ];
   return (
     <div className="flex flex-row justify-between items-center px-8 pb-4">
       <Link href="/">
@@ -31,26 +40,26 @@ export default function Header() {
           </div>
         </div>
       </Link>
-      {/* Navigation Buttons */}
-      {inactiveLinks.map((text, index) => (
-        // <Link key={index} className="text-black px-4 hover:shadow-xl" href="#">
-        //   {text}
-        // </Link>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>{text}</TooltipTrigger>
-            <TooltipContent>
-              <p>Coming Soon</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ))}
-      <Link className="text-black px-4 hover:shadow-xl" href="/about">
-        About
-      </Link>
-      <Link className="nav-button contact-button" href="/contact">
-        Contact
-      </Link>
+      {links.map((obj, index) =>
+        obj.link ? (
+          <Link
+            className="text-black px-4 hover:shadow-xl"
+            href={obj.link}
+            key={index}
+          >
+            {obj.text}
+          </Link>
+        ) : (
+          <TooltipProvider key={index}>
+            <Tooltip>
+              <TooltipTrigger>{obj.text}</TooltipTrigger>
+              <TooltipContent>
+                <p>Coming Soon</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )
+      )}
     </div>
   );
 }
