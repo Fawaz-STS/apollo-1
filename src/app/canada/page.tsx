@@ -24,14 +24,14 @@ export default function Home() {
       </h1>
       <div className="h-fit flex flex-row justify-center mb-4">
         <SidebarProvider>
-          {/* <AppSidebar /> */}
+          <AppSidebar />
           <SidebarInset>
             <SidebarTrigger className="-ml-1" />
-            <div className="h-full w-3/11 text-black">
+            {/* <div className="h-full w-3/11 text-black">
               <VoteOverview />
               <SeatsTotals />
               <ImportantInfoSection />
-            </div>
+            </div> */}
             <div className="flex justify-center h-[1] w-8/11">
               <p className=""> Map </p>
             </div>

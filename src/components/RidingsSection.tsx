@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Papa from "papaparse";
 
 interface TableData {
@@ -89,15 +89,25 @@ export const RidingsSection = () => {
   > | null>(null);
   const [excludedColumns, setExcludedColumns] = useState<number[]>([]);
 
+  const visibleHeaders = useMemo(() => {
+    if (!tableData) return [];
+    return tableData.headers.filter(
+      (_, index) => !excludedColumns.includes(index)
+    );
+  }, [tableData, excludedColumns]);
+
+  const visibleRows = useMemo(() => {
+    if (!tableData) return [];
+    return tableData.rows.map((row) =>
+      row.filter((_, index) => !excludedColumns.includes(index))
+    );
+  }, [tableData, excludedColumns]);
+
   // Function to get visible columns (excluding specified indices)
   const getVisibleColumns = (headers: string[], rows: string[][]) => {
     return {
-      visibleHeaders: headers.filter(
-        (_, index) => !excludedColumns.includes(index)
-      ),
-      visibleRows: rows.map((row) =>
-        row.filter((_, index) => !excludedColumns.includes(index))
-      ),
+      visibleHeaders,
+      visibleRows,
     };
   };
 
@@ -209,16 +219,10 @@ export const RidingsSection = () => {
             <div
               className="grid"
               style={{
-                gridTemplateColumns: `repeat(${
-                  getVisibleColumns(tableData.headers, tableData.rows)
-                    .visibleHeaders.length
-                }, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${visibleHeaders.length}, minmax(0, 1fr))`,
               }}
             >
-              {getVisibleColumns(
-                tableData.headers,
-                tableData.rows
-              ).visibleHeaders.map((header, index) => (
+              {visibleHeaders.map((header, index) => (
                 <div
                   key={index}
                   className="px-6 py-3 border-b border-gray-200 bg-[#808080] text-left text-xs font-medium text-white uppercase tracking-wider"
@@ -232,16 +236,11 @@ export const RidingsSection = () => {
             <div
               className="grid"
               style={{
-                gridTemplateColumns: `repeat(${
-                  getVisibleColumns(tableData.headers, tableData.rows)
-                    .visibleHeaders.length
-                }, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${visibleHeaders.length}, minmax(0, 1fr))`,
               }}
             >
-              {tableData.rows.map((fullRow, rowIndex) => {
-                const visibleRow = fullRow.filter(
-                  (_, i) => !excludedColumns.includes(i)
-                );
+              {visibleRows.map((visibleRow, rowIndex) => {
+                const fullRow = tableData.rows[rowIndex];
                 const riding = fullRow[0]; // Riding number
                 const name = fullRow[1]; // first column (name)
                 const url = fullRow[10]; // hidden column (link)
