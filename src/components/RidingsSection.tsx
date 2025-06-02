@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Papa from "papaparse";
 
 interface TableData {
@@ -14,12 +14,11 @@ interface RidingPartyData {
   candidateVotePrcnt: number;
 }
 
-interface CandidateData {
-  data: RidingPartyData[];
-  winningParty: string;
-}
-
 interface RidingInfo {
+  ridingId: string;
+  ridingLink: string;
+  incumbent: string;
+  ridingName: string;
   Conservative: RidingPartyData;
   Liberal: RidingPartyData;
   Bloc: RidingPartyData;
@@ -28,6 +27,8 @@ interface RidingInfo {
   winningParty: string;
   winningCandidate: string;
 }
+
+type Party = "Liberal" | "Conservative" | "NDP" | "Green" | "Bloc";
 
 const partyColors = {
   Liberal: "text-party-liberal",
@@ -73,6 +74,7 @@ const CandidateDisplay = ({
     <div>
       <p className={isWinner ? `font-bold ${colorClass}` : ""}>
         {candidateName}
+        {isWinner && <span className="ml-1">✓</span>}
       </p>
       <p className="text-sm text-gray-500">
         {formatVoteInfo(data.candidateVoteNum, data.candidateVotePrcnt)}
@@ -82,48 +84,12 @@ const CandidateDisplay = ({
 };
 
 export const RidingsSection = () => {
-  const [tableData, setTableData] = useState<TableData | null>(null);
   const [candidateData, setCandidateData] = useState<Map<
     string,
     RidingInfo
   > | null>(null);
-  const [excludedColumns, setExcludedColumns] = useState<number[]>([]);
-
-  // Function to get visible columns (excluding specified indices)
-  const getVisibleColumns = (headers: string[], rows: string[][]) => {
-    return {
-      visibleHeaders: headers.filter(
-        (_, index) => !excludedColumns.includes(index)
-      ),
-      visibleRows: rows.map((row) =>
-        row.filter((_, index) => !excludedColumns.includes(index))
-      ),
-    };
-  };
 
   useEffect(() => {
-    const fetchAndParseCSV = async () => {
-      try {
-        const response = await fetch("/RidingData2025.csv");
-        const csvText = await response.text();
-
-        Papa.parse(csvText, {
-          complete: (results) => {
-            const data = results.data as string[][];
-            if (data.length > 0) {
-              setTableData({
-                headers: data[0],
-                rows: data.slice(1),
-              });
-            }
-          },
-          header: false,
-        });
-      } catch (error) {
-        console.error("Error loading CSV file:", error);
-      }
-    };
-
     const fetchAndParseCandidateCSV = async () => {
       try {
         const response = await fetch(
@@ -140,7 +106,6 @@ export const RidingsSection = () => {
               // Skip header row and process each row
               data.slice(1).forEach((row) => {
                 if (row.length >= 19) {
-                  // Ensure we have all required columns
                   const ridingId = row[0];
                   const ridingName = row[1];
 
@@ -177,6 +142,10 @@ export const RidingsSection = () => {
                     },
                     winningCandidate: row[17] || "",
                     winningParty: row[18] || "",
+                    ridingId: ridingId,
+                    ridingLink: "",
+                    incumbent: "",
+                    ridingName: ridingName,
                   };
 
                   newCandidateData.set(ridingId, ridingInfo);
@@ -192,99 +161,128 @@ export const RidingsSection = () => {
         console.error("Error loading CSV file:", error);
       }
     };
+
+    const fetchAndParseCSV = async () => {
+      try {
+        const response = await fetch("/RidingData2025.csv");
+        const csvText = await response.text();
+
+        Papa.parse(csvText, {
+          complete: (results) => {
+            const data = results.data as string[][];
+            if (data.length > 0) {
+              // Update candidate data with riding link and incumbent info
+              setCandidateData((prevData) => {
+                if (!prevData) return null;
+                const newData = new Map(prevData);
+
+                data.slice(1).forEach((row) => {
+                  const ridingId = row[0];
+                  const ridingInfo = newData.get(ridingId);
+                  if (ridingInfo) {
+                    newData.set(ridingId, {
+                      ...ridingInfo,
+                      ridingLink: row[10] || "",
+                      incumbent: row[7] || "",
+                      ridingName: row[1] || "",
+                      Liberal: {
+                        ...ridingInfo.Liberal,
+                        candidateName: row[2] || "",
+                      },
+                      Conservative: {
+                        ...ridingInfo.Conservative,
+                        candidateName: row[3] || "",
+                      },
+                      NDP: {
+                        ...ridingInfo.NDP,
+                        candidateName: row[4] || "",
+                      },
+                      Green: {
+                        ...ridingInfo.Green,
+                        candidateName: row[5] || "",
+                      },
+                      Bloc: {
+                        ...ridingInfo.Bloc,
+                        candidateName: row[6] || "",
+                      },
+                    });
+                  }
+                });
+
+                return newData;
+              });
+            }
+          },
+          header: false,
+        });
+      } catch (error) {
+        console.error("Error loading CSV file:", error);
+      }
+    };
+
     fetchAndParseCandidateCSV();
     fetchAndParseCSV();
   }, []);
 
-  // Example: Exclude columns 1 and 3 (0-based index)
-  useEffect(() => {
-    setExcludedColumns([0, 8, 9, 10]); // Modify this array to exclude different columns
-  }, []);
-
   return (
     <div className="my-8">
-      {tableData && (
+      {candidateData && (
         <div className="grid grid-cols-1">
           <div className="overflow-x-auto">
-            <div
-              className="grid"
-              style={{
-                gridTemplateColumns: `repeat(${
-                  getVisibleColumns(tableData.headers, tableData.rows)
-                    .visibleHeaders.length
-                }, minmax(0, 1fr))`,
-              }}
-            >
-              {getVisibleColumns(
-                tableData.headers,
-                tableData.rows
-              ).visibleHeaders.map((header, index) => (
-                <div
-                  key={index}
-                  className="px-6 py-3 border-b border-gray-200 bg-[#808080] text-left text-xs font-medium text-white uppercase tracking-wider"
-                >
-                  {header}
-                </div>
-              ))}
+            <div className="grid grid-cols-6 gap-4 px-6 py-3 border-b border-gray-200 bg-[#808080] text-left text-xs font-medium text-white uppercase tracking-wider">
+              <div>Riding</div>
+              <div>Liberal</div>
+              <div>Conservative</div>
+              <div>NDP</div>
+              <div>Green</div>
+              <div>Bloc</div>
             </div>
           </div>
           <div className="overflow-y-auto h-[500px]">
-            <div
-              className="grid"
-              style={{
-                gridTemplateColumns: `repeat(${
-                  getVisibleColumns(tableData.headers, tableData.rows)
-                    .visibleHeaders.length
-                }, minmax(0, 1fr))`,
-              }}
-            >
-              {tableData.rows.map((fullRow, rowIndex) => {
-                const visibleRow = fullRow.filter(
-                  (_, i) => !excludedColumns.includes(i)
-                );
-                const riding = fullRow[0]; // Riding number
-                const name = fullRow[1]; // first column (name)
-                const url = fullRow[10]; // hidden column (link)
-
-                return (
-                  <React.Fragment key={rowIndex}>
-                    {visibleRow.map((cell, cellIndex) => {
-                      const isFirstVisibleCell = cellIndex === 0;
-
-                      return (
-                        <div
-                          key={cellIndex}
-                          className={`px-6 py-4 text-sm text-gray-500 border-b border-gray-200 ${
-                            rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
-                          }`}
-                        >
-                          {cellIndex === 0 && url ? (
-                            <a
-                              href={url}
-                              target="_blank"
-                              className="text-blue-600 underline"
-                            >
-                              {name}
-                            </a>
-                          ) : candidateData &&
-                            candidateData.get(riding) &&
-                            cellIndex < 6 ? (
-                            <CandidateDisplay
-                              candidateName={cell}
-                              ridingData={candidateData.get(riding)!}
-                            />
-                          ) : (
-                            <div>
-                              <p>{cell}</p>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </React.Fragment>
-                );
-              })}
-            </div>
+            {Array.from(candidateData.entries()).map(
+              ([ridingId, ridingInfo], index) => (
+                <div
+                  key={ridingId}
+                  className={`grid grid-cols-6 gap-4 px-6 py-4 text-sm text-gray-500 border-b border-gray-200 ${
+                    index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                  }`}
+                >
+                  <div>
+                    {ridingInfo.ridingLink ? (
+                      <a
+                        href={ridingInfo.ridingLink}
+                        target="_blank"
+                        className="text-blue-600 underline"
+                      >
+                        {ridingInfo.ridingName}
+                      </a>
+                    ) : (
+                      ridingInfo.ridingName
+                    )}
+                    {ridingInfo.incumbent && (
+                      <div className="text-xs text-gray-400">
+                        Incumbent: {ridingInfo.incumbent}
+                      </div>
+                    )}
+                  </div>
+                  {(
+                    [
+                      "Liberal",
+                      "Conservative",
+                      "NDP",
+                      "Green",
+                      "Bloc",
+                    ] as Party[]
+                  ).map((party) => (
+                    <CandidateDisplay
+                      key={party}
+                      candidateName={ridingInfo[party].candidateName}
+                      ridingData={ridingInfo}
+                    />
+                  ))}
+                </div>
+              )
+            )}
           </div>
         </div>
       )}
