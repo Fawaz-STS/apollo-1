@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import Header from "@/components/Header";
 import { VoteOverview } from "@/components/VoteOverview";
@@ -15,29 +16,29 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import InteractiveMap from "@/components/InteractiveMap";
 
 export default function Home() {
+  const handleRegionClick = (region: string) => {
+    console.log("Selected region:", region);
+  };
+
   return (
     <div className="bg-white min-h-screen mb-8 flex flex-col px-4">
       <h1 className="m-auto text-3xl w-fit text-center py-2 shadow-b-lg">
         Canada Election Map - Prediction 2025
       </h1>
-      <div className="h-fit flex flex-row justify-center mb-4">
+      <div className="h-[70vh] flex flex-row justify-center mb-4 relative">
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
-            <SidebarTrigger className="-ml-1" />
-            {/* <div className="h-full w-3/11 text-black">
-              <VoteOverview />
-              <SeatsTotals />
-              <ImportantInfoSection />
-            </div> */}
-            <div className="flex justify-center h-[1] w-8/11">
-              <p className=""> Map </p>
+            <SidebarTrigger className="absolute top-4 left-4 z-50" />
+            <div className="flex justify-center min-h-0 flex-col pl-4 relative h-[70vh]">
+              <InteractiveMap onRegionClick={handleRegionClick} />
             </div>
             {/* <div className="grow w-2/11">
-            <ApolloInsightsSection />
-          </div> */}
+              <ApolloInsightsSection />
+            </div> */}
           </SidebarInset>
         </SidebarProvider>
       </div>

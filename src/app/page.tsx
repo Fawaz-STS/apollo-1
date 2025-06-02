@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import Header from "@/components/Header";
 import { VoteOverview } from "@/components/VoteOverview";
@@ -8,7 +9,12 @@ import ImportantInfoSection from "@/components/ImportantInfoSection";
 import { LineChartComponent } from "@/components/LineChart";
 import { Bar } from "recharts";
 import { BarChartComponent } from "@/components/BarChart";
+import InteractiveMap from "@/components/InteractiveMap";
 
 export default function Home() {
-  return <h1>Home Page</h1>;
+  return (
+    <div>
+      <p>Home</p>
+    </div>
+  );
 }
