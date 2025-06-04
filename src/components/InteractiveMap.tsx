@@ -243,11 +243,11 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
             type="text"
             id="year"
             list="year-options"
-            value={selectedYear}
+            value={selectedYear ?? ""}
             onChange={(e) => {
               const val = parseInt(e.target.value);
               if (!isNaN(val)) setSelectedYear(val);
-              else setSelectedYear("");
+              else setSelectedYear(null);
             }}
             placeholder="e.g., 2025"
           />
