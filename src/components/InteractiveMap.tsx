@@ -2,6 +2,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import "@/app/styles.css";
+import { TbAdjustments } from "react-icons/tb";
+import { MdZoomOut } from "react-icons/md";
 
 interface InteractiveMapProps {
   onRegionClick: (region: string) => void;
@@ -21,6 +23,9 @@ const colorMap = {
 const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<SVGGElement>(null);
+  const baseTransform = useRef<d3.ZoomTransform | null>(null);
+  const zoomRef = useRef<any>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
   const availableYears = [2015, 2019, 2021, 2023, 2025];
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedRidingId, setSelectedRidingId] = useState<string | null>(null);
@@ -28,7 +33,38 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
   const [displayMode, setDisplayMode] = useState<"Straight" | "Battleground">(
     "Straight"
   );
+  const [showOptions, setShowOptions] = useState(false);
   const isFirstLoad = useRef(true);
+
+  const handleZoomOut = () => {
+    if (!svgRef.current || !gRef.current || !zoomRef.current) {
+      console.log("No svgRef.current || !gRef.current || !zoomRef.current");
+      return;
+    }
+
+    const svg = d3.select(svgRef.current);
+    const g = d3.select(gRef.current);
+    const bbox = g.node()?.getBBox();
+    const svgWidth = svgRef.current.clientWidth ?? 800;
+    const svgHeight = svgRef.current.clientHeight ?? 600;
+
+    if (bbox && svgWidth && svgHeight) {
+      const scale =
+        0.9 * Math.min(svgWidth / bbox.width, svgHeight / bbox.height);
+      const translateX = svgWidth / 2 - (bbox.x + bbox.width / 2) * scale;
+      const translateY = svgHeight / 2 - (bbox.y + bbox.height / 2) * scale;
+
+      const transform = d3.zoomIdentity
+        .translate(translateX, translateY)
+        .scale(scale);
+
+      svg
+        .transition()
+        .duration(750)
+        .ease(d3.easeCubicInOut)
+        .call(zoomRef.current.transform, transform);
+    }
+  };
 
   useEffect(() => {
     const svg = d3.select(svgRef.current) as d3.Selection<
@@ -64,6 +100,7 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 20])
+      .filter((event) => event.type !== "wheel")
       .translateExtent([
         [-100, -100],
         [svgWidth + 100, svgHeight + 100],
@@ -73,6 +110,7 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
       });
 
     svg.call(zoom);
+    zoomRef.current = zoom;
 
     const filename = () => {
       if (viewMode === "Ridings" && displayMode === "Straight") {
@@ -159,6 +197,7 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
             const path = d3.select(event.currentTarget as SVGGraphicsElement);
             const regionId = path.attr("id");
             const regionName = path.attr("data-ed_namee");
+            setShowOptions(false);
 
             if (regionId) {
               setSelectedRidingId(regionId);
@@ -197,6 +236,10 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
               const transform = d3.zoomIdentity
                 .translate(translateX, translateY)
                 .scale(scale);
+
+              // Store the base transform for zoom out
+              baseTransform.current = transform;
+
               svg.call(zoom.transform, transform);
             }
           }, 0);
@@ -210,56 +253,86 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
 
   return (
     <div className="interactive-map-root h-full w-full min-h-0 min-w-0 flex flex-col relative p-4">
-      <div className="map-toggle-container toggle-container absolute top-4 left-4">
-        <div>
-          <span className="toggle-label">Straight</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              onChange={(e) =>
-                setDisplayMode(e.target.checked ? "Battleground" : "Straight")
-              }
-            />
-            <span className="slider custom-toggle"></span>
-          </label>
-          <span className="toggle-label">Battleground</span>
+      <button
+        className="absolute top-8 left-6 p-2 rounded-full bg-gray-600 text-white hover:bg-blue-700 shadow transition z-10"
+        onClick={() => setShowOptions(!showOptions)}
+        title="Toggle Options"
+      >
+        <TbAdjustments size={20} />
+      </button>
+      <button
+        className="absolute top-20 left-6 p-2 rounded-full bg-gray-600 text-white hover:bg-blue-700 shadow transition z-10"
+        onClick={() => {
+          handleZoomOut();
+        }}
+        title="Zoom Out"
+      >
+        <MdZoomOut size={20} />
+      </button>
+      {showOptions && (
+        <div
+          ref={optionsRef}
+          className="map-toggle-container"
+          style={{ position: "absolute", top: "4px", left: "72px" }}
+        >
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <span className="toggle-label">Straight</span>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  onChange={(e) =>
+                    setDisplayMode(
+                      e.target.checked ? "Battleground" : "Straight"
+                    )
+                  }
+                />
+                <span className="slider custom-toggle"></span>
+              </label>
+              <span className="toggle-label">Battleground</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="toggle-label">Ridings</span>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  onChange={(e) =>
+                    setViewMode(e.target.checked ? "Gradient" : "Ridings")
+                  }
+                />
+                <span className="slider custom-toggle"></span>
+              </label>
+              <span className="toggle-label">Gradient</span>
+            </div>
+            <div className="year-select">
+              <label htmlFor="year">Select Year:</label>
+              <input
+                type="text"
+                id="year"
+                list="year-options"
+                value={selectedYear ?? ""}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val)) setSelectedYear(val);
+                  else setSelectedYear(null);
+                }}
+                placeholder="e.g., 2025"
+              />
+              <datalist id="year-options">
+                {availableYears.map((year) => (
+                  <option key={year} value={year.toString()} />
+                ))}
+              </datalist>
+            </div>
+          </div>
         </div>
-        <div style={{ marginLeft: "20px" }}>
-          <span className="toggle-label">Ridings</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              onChange={(e) =>
-                setViewMode(e.target.checked ? "Gradient" : "Ridings")
-              }
-            />
-            <span className="slider custom-toggle"></span>
-          </label>
-          <span className="toggle-label">Gradient</span>
-        </div>
-        <div className="year-select">
-          <label htmlFor="year">Select Year:</label>
-          <input
-            type="text"
-            id="year"
-            list="year-options"
-            value={selectedYear ?? ""}
-            onChange={(e) => {
-              const val = parseInt(e.target.value);
-              if (!isNaN(val)) setSelectedYear(val);
-              else setSelectedYear(null);
-            }}
-            placeholder="e.g., 2025"
-          />
-          <datalist id="year-options">
-            {availableYears.map((year) => (
-              <option key={year} value={year.toString()} />
-            ))}
-          </datalist>
-        </div>
-      </div>
-
-      <svg ref={svgRef} id="map" className="h-full w-full">
+      )}
+      <svg
+        ref={svgRef}
+        id="map"
+        className="h-full w-full"
+        onClick={() => setShowOptions(false)}
+      >
         <g ref={gRef} />
       </svg>
     </div>

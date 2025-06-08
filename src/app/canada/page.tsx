@@ -25,14 +25,14 @@ export default function Home() {
 
   return (
     <div className="bg-white min-h-screen mb-8 flex flex-col px-4">
-      <h1 className="m-auto text-3xl w-fit text-center py-2 shadow-b-lg">
+      <h1 className="m-auto text-3xl w-fit mt-8 text-center py-2 shadow-b-lg">
         Canada Election Map - Prediction 2025
       </h1>
       <div className="h-[70vh] flex flex-row justify-center mb-4 relative">
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
-            <SidebarTrigger className="absolute top-4 left-4 z-50" />
+            <SidebarTrigger className="absolute top-4 left-2 z-50" />
             <div className="flex justify-center min-h-0 flex-col pl-4 relative h-[70vh]">
               <InteractiveMap onRegionClick={handleRegionClick} />
             </div>

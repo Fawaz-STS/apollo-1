@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Papa from "papaparse";
+import { FaArrowUp } from "react-icons/fa";
 
 interface TableData {
   headers: string[];
@@ -88,12 +89,19 @@ export const RidingsSection = () => {
     string,
     RidingInfo
   > | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollToTop = () => {
+    if (listRef.current) {
+      listRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     const fetchAndParseCandidateCSV = async () => {
       try {
         const response = await fetch(
-          "/CANADA_ELECTION_2025_VOTE_RESULTS_BY_CANDIDATE.csv"
+          "/data/CANADA_ELECTION_2025_VOTE_RESULTS_BY_CANDIDATE.csv"
         );
         const csvText = await response.text();
 
@@ -112,31 +120,31 @@ export const RidingsSection = () => {
                   const ridingInfo: RidingInfo = {
                     Conservative: {
                       partyName: "Conservative",
-                      candidateName: row[5] || "",
+                      candidateName: "",
                       candidateVoteNum: parseInt(row[6]) || 0,
                       candidateVotePrcnt: parseFloat(row[7]) || 0,
                     },
                     Liberal: {
                       partyName: "Liberal",
-                      candidateName: row[2] || "",
+                      candidateName: "",
                       candidateVoteNum: parseInt(row[3]) || 0,
                       candidateVotePrcnt: parseFloat(row[4]) || 0,
                     },
                     NDP: {
                       partyName: "NDP",
-                      candidateName: row[8] || "",
+                      candidateName: "",
                       candidateVoteNum: parseInt(row[9]) || 0,
                       candidateVotePrcnt: parseFloat(row[10]) || 0,
                     },
                     Green: {
                       partyName: "Green",
-                      candidateName: row[11] || "",
+                      candidateName: "",
                       candidateVoteNum: parseInt(row[12]) || 0,
                       candidateVotePrcnt: parseFloat(row[13]) || 0,
                     },
                     Bloc: {
                       partyName: "Bloc",
-                      candidateName: row[14] || "",
+                      candidateName: "",
                       candidateVoteNum: parseInt(row[15]) || 0,
                       candidateVotePrcnt: parseFloat(row[16]) || 0,
                     },
@@ -164,7 +172,7 @@ export const RidingsSection = () => {
 
     const fetchAndParseCSV = async () => {
       try {
-        const response = await fetch("/RidingData2025.csv");
+        const response = await fetch("/data/RidingData2025.csv");
         const csvText = await response.text();
 
         Papa.parse(csvText, {
@@ -225,7 +233,14 @@ export const RidingsSection = () => {
   }, []);
 
   return (
-    <div className="my-8">
+    <div className="my-8 relative">
+      <button
+        className="absolute right-4 top-2 z-10 bg-white text-white p-2 rounded-full shadow transition"
+        onClick={handleScrollToTop}
+        aria-label="Scroll to Top"
+      >
+        <FaArrowUp size={10} color="#555" />
+      </button>
       {candidateData && (
         <div className="grid grid-cols-1">
           <div className="overflow-x-auto">
@@ -238,7 +253,7 @@ export const RidingsSection = () => {
               <div>Bloc</div>
             </div>
           </div>
-          <div className="overflow-y-auto h-[500px]">
+          <div ref={listRef} className="overflow-y-auto h-[500px] relative">
             {Array.from(candidateData.entries()).map(
               ([ridingId, ridingInfo], index) => (
                 <div
