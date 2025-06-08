@@ -1,122 +1,102 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Checkbox } from "./ui/checkbox";
-import * as Constants from "@/constants";
+import Papa from "papaparse";
+
+interface PartyData {
+  party: string;
+  color: string;
+  votes: string;
+  votePcnt: string;
+  seats: string;
+  seatPcnt: string;
+}
 
 export const VoteOverview = () => {
-  const [view, setView] = useState<"current" | "history">("current");
+  const [view, setView] = useState<"votes" | "seats">("votes");
+  const [partyData, setPartyData] = useState<PartyData[]>([]);
 
-  const currentVoteData = [
-    {
-      party: "Conserv.",
-      color: "#142f52",
-      votes: "5,556,835",
-      votePcnt: "32.6%",
-      change: "5.3",
-    },
-    {
-      party: "Liberal",
-      color: "#d41f27",
-      votes: "5,742,635",
-      votePcnt: "33.7%",
-      change: "4.2",
-    },
-    {
-      party: "NDP",
-      color: "#f58220",
-      votes: "3,035,715",
-      votePcnt: "17.8%",
-      change: "1.6",
-    },
-    {
-      party: "Bloc",
-      color: "#51a5e1",
-      votes: "1,301,496",
-      votePcnt: "7.6%",
-      change: "0.3",
-    },
-    {
-      party: "Green",
-      color: "#20a242",
-      votes: "398,746",
-      votePcnt: "2.3%",
-      change: "0.1",
-    },
-    { party: "Other", votes: "100,000", color: "#808080" },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/data/Info For Drawer(Sheet1).csv");
+        const csvText = await response.text();
 
-  const historicalVoteData = [
-    {
-      party: "Conservative",
-      color: "blue",
-      votes: "6,100,000",
-      votePcnt: "34.0%",
-      change: "-1.2",
-    },
-    {
-      party: "Liberal",
-      color: "green",
-      votes: "6,000,000",
-      votePcnt: "33.4%",
-      change: "-0.3",
-    },
-    {
-      party: "NDP",
-      color: "yellow",
-      votes: "2,900,000",
-      votePcnt: "16.5%",
-      change: "-1.3",
-    },
-    {
-      party: "Bloc",
-      color: "blue",
-      votes: "1,350,000",
-      votePcnt: "7.8%",
-      change: "+0.2",
-    },
-    {
-      party: "Green",
-      color: "green",
-      votes: "420,000",
-      votePcnt: "2.5%",
-      change: "+0.2",
-    },
-    { party: "Other", votes: "110,000" },
-  ];
+        Papa.parse(csvText, {
+          complete: (results) => {
+            const data = results.data as string[][];
+            if (data.length > 0) {
+              // Skip header row and process each row
+              const newData = data.slice(1, 7).map((row) => ({
+                party: row[0],
+                color: getPartyColor(row[0]),
+                votes: row[1],
+                votePcnt: row[2],
+                seats: row[3],
+                seatPcnt: row[4],
+              }));
+              setPartyData(newData);
+            }
+          },
+          header: false,
+        });
+      } catch (error) {
+        console.error("Error loading CSV file:", error);
+      }
+    };
 
-  const dataToDisplay =
-    view === "current" ? currentVoteData : historicalVoteData;
+    fetchData();
+  }, []);
+
+  const getPartyColor = (party: string): string => {
+    switch (party) {
+      case "Conservative":
+        return "#142f52";
+      case "Liberal":
+        return "#d41f27";
+      case "NDP":
+        return "#f58220";
+      case "Bloc":
+        return "#51a5e1";
+      case "Green":
+        return "#20a242";
+      default:
+        return "#808080";
+    }
+  };
 
   return (
     <div className="flex flex-col px-2">
       <div className="flex flex-row pb-2 justify-between items-end">
-        <h1 className="text-xl text-left">Totals - Vote Count</h1>
+        <h1 className="text-xl text-left">
+          Totals - {view === "votes" ? "Vote Count" : "Seats"}
+        </h1>
         <div className="flex flex-row space-x-2 text-sm font-medium">
           <button
-            onClick={() => setView("current")}
+            onClick={() => setView("votes")}
             className={`px-3 py-1 rounded ${
-              view === "current"
+              view === "votes"
                 ? "bg-[#808080] text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
-            Current
+            Votes
           </button>
-          {/* <button
-            onClick={() => setView("history")}
+          <button
+            onClick={() => setView("seats")}
             className={`px-3 py-1 rounded ${
-              view === "history"
-                ? "bg-blue-600 text-white"
+              view === "seats"
+                ? "bg-[#808080] text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
-            History
-          </button> */}
+            Seats
+          </button>
         </div>
       </div>
 
       <div className="w-full max-w-4xl">
-        {dataToDisplay.map((data, index) => (
+        {partyData.map((data, index) => (
           <div
             key={index}
             className="grid grid-cols-4 gap-4 py-2 border-b border-gray-100 items-center text-sm"

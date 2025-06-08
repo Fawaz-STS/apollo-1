@@ -1,20 +1,21 @@
 "use client";
-import Image from "next/image";
-import Header from "@/components/Header";
-import { VoteOverview } from "@/components/VoteOverview";
-import { SeatsTotals } from "@/components/SeatsTotals";
-import { ApolloInsightsSection } from "@/components/ApolloInsightsSection";
-import { RidingsSection } from "@/components/RidingsSection";
-import ImportantInfoSection from "@/components/ImportantInfoSection";
-import { LineChartComponent } from "@/components/LineChart";
-import { Bar } from "recharts";
-import { BarChartComponent } from "@/components/BarChart";
-import InteractiveMap from "@/components/InteractiveMap";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div>
-      <p>Home</p>
-    </div>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-r bg-[#808080]">
+      <div className="text-center text-white px-4">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6">Coming Soon</h1>
+        <p className="text-xl md:text-2xl mb-8">
+          Check out our Canadian election Page
+        </p>
+        <Link
+          href="/canada"
+          className="bg-white text-[#808080] px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-50 transition-colors inline-block"
+        >
+          View Canadian Election Results
+        </Link>
+      </div>
+    </main>
   );
 }

@@ -18,6 +18,7 @@ import ImportantInfoSection from "./ImportantInfoSection";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { ApolloInsightsSection } from "./ApolloInsightsSection";
 // This is sample data.
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -39,13 +40,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )}
         {!showD1 && (
           <div>
-            <p>D2</p>
+            <ApolloInsightsSection />
+            <ImportantInfoSection />
           </div>
         )}
       </SidebarContent>
-      <SidebarFooter>
-        <div className="p-1"></div>
-      </SidebarFooter>
+      <SidebarFooter></SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
