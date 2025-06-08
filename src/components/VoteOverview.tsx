@@ -109,7 +109,7 @@ export const VoteOverview = () => {
             </div>
             <div className="text-left pl-4">{data.votes}</div>
             <div className="text-left pl-2">{data.votePcnt || "–"}</div>
-            <div className="text-left">{data.change || "–"}</div>
+            <div className="text-left">–</div>
           </div>
         ))}
       </div>
