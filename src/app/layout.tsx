@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { Montserrat } from "next/font/google";
 import Header from "@/components/Header";
 import "./globals.css";
-
+import Footer from "@/components/Footer";
 const montserrat = Montserrat({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -41,11 +41,12 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className={montserrat.className}>
-        <div className="flex flex-col py-4">
+        <div className="flex flex-col">
           <div className="sticky top-0 bg-white shadow-sm z-100">
             <Header />
           </div>
           {children}
+          <Footer />
         </div>
       </body>
     </html>

@@ -7,7 +7,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { text } from "stream/consumers";
 
 export default function Header() {
   const links = [
@@ -17,8 +16,8 @@ export default function Header() {
     { text: "International" },
     { text: "Polling" },
     { text: "News" },
-    { text: "About", link: "/about" },
-    { text: "Contact", link: "/contact" },
+    { text: "About" },
+    { text: "Contact" },
   ];
   return (
     <div className="flex flex-row justify-between items-center px-8 pb-4">
@@ -31,7 +30,7 @@ export default function Header() {
             alt={"Apollo greek figure"}
           ></Image>
           {/* Logo as background image */}
-          <div className="text-zinc-500 text-2xl ml-4">
+          <div className="text-zinc-500 text-2xl ml-4 tracking-widest">
             Apollo
             <br />
             Analytic
@@ -43,7 +42,7 @@ export default function Header() {
       {links.map((obj, index) =>
         obj.link ? (
           <Link
-            className="text-black px-4 hover:shadow-xl"
+            className="text-black px-4 hover:shadow-lg hover:bg-gray-100 transition-shadow transition-colors duration-200 rounded"
             href={obj.link}
             key={index}
           >
@@ -53,7 +52,7 @@ export default function Header() {
           <TooltipProvider key={index}>
             <Tooltip>
               <TooltipTrigger>{obj.text}</TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="z-100">
                 <p>Coming Soon</p>
               </TooltipContent>
             </Tooltip>

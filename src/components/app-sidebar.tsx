@@ -27,8 +27,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props}>
       <SidebarHeader>
         <SidebarMenu className="flex flex-row justify-between">
-          <Button onClick={() => setShowD1(true)}>D1</Button>
-          <Button onClick={() => setShowD1(false)}> D2</Button>
+          <Button onClick={() => setShowD1(true)}>Election Overview</Button>
+          <Button onClick={() => setShowD1(false)}>Riding Info</Button>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>

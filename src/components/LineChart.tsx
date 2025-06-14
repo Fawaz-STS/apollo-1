@@ -1,94 +1,111 @@
 "use client";
-
-import { TrendingUp } from "lucide-react";
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
-
+import React from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
+  "Conserv.": { label: "Conserv.", color: "var(--conservative-color)" },
+  Liberal: { label: "Liberal", color: "var(--liberal-color)" },
+  NDP: { label: "NDP", color: "var(--ndp-color)" },
+  Bloc: { label: "Bloc", color: "var(--bloc-color)" },
+  Green: { label: "Green", color: "var(--green-color)" },
+};
+
+const lineData = [
+  {
+    year: 2015,
+    "Conserv.": 8000000,
+    Liberal: 9000000,
+    NDP: 2000000,
+    Bloc: 1000000,
+    Green: 500000,
   },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
+  {
+    year: 2019,
+    "Conserv.": 8500000,
+    Liberal: 9500000,
+    NDP: 2500000,
+    Bloc: 1200000,
+    Green: 600000,
   },
-} satisfies ChartConfig;
+  {
+    year: 2021,
+    "Conserv.": 9000000,
+    Liberal: 10000000,
+    NDP: 3000000,
+    Bloc: 1300000,
+    Green: 700000,
+  },
+  {
+    year: 2025,
+    "Conserv.": 8113484,
+    Liberal: 8595488,
+    NDP: 1234673,
+    Bloc: 1236349,
+    Green: 238892,
+  },
+];
 
 export function LineChartComponent() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Line Chart - Dots</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Votes by Party Over Years</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Line
-              dataKey="desktop"
-              type="natural"
-              stroke="var(--color-desktop)"
-              strokeWidth={2}
-              dot={{
-                fill: "var(--color-desktop)",
-              }}
-              activeDot={{
-                r: 6,
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={lineData}>
+            <XAxis dataKey="year" />
+            <YAxis />
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload || !payload.length) return null;
+                return (
+                  <div className="bg-white/95 text-black rounded shadow-lg px-4 py-2 text-sm">
+                    {payload.map((p) => {
+                      const party = p.dataKey as keyof typeof chartConfig;
+                      const value = p.value as number | undefined;
+                      if (
+                        !party ||
+                        !(party in chartConfig) ||
+                        value === undefined
+                      )
+                        return null;
+                      return (
+                        <div
+                          key={party}
+                          style={{ color: chartConfig[party].color }}
+                        >
+                          {chartConfig[party].label}: {value.toLocaleString()}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
               }}
             />
+            <Legend />
+            {Object.keys(chartConfig).map((party) => (
+              <Line
+                key={party}
+                type="monotone"
+                dataKey={party}
+                stroke={chartConfig[party as keyof typeof chartConfig].color}
+                strokeWidth={2}
+                dot={false}
+              />
+            ))}
           </LineChart>
-        </ChartContainer>
+        </ResponsiveContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter>
     </Card>
   );
 }

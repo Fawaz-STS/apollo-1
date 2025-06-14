@@ -7,6 +7,16 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  overflow: auto;
+  height: 100%;
+}
+
 @layer base {
   body {
     font-family: "Montserrat", sans-serif;
@@ -22,6 +32,12 @@
   --sidebar-accent-foreground: hsl(240 5.9% 10%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --apollo-primary: #808080;
+  --conservative-color: #142f52;
+  --liberal-color: #d41f27;
+  --ndp-color: #f58220;
+  --green-color: #20a242;
+  --bloc-color: #51a5e1;
 }
 
 .dark {
@@ -48,19 +64,19 @@
 }
 
 @layer utilities {
-  .text-party-liberal {
-    color: #d41f27;
+  .liberal-color {
+    color: var(--liberal-color);
   }
-  .text-party-conservative {
-    color: #142f52;
+  .conservative-color {
+    color: var(--conservative-color);
   }
-  .text-party-ndp {
-    color: #f58220;
+  .ndp-color {
+    color: var(--ndp-color);
   }
-  .text-party-green {
-    color: #20a242;
+  .green-color {
+    color: var(--green-color);
   }
-  .text-party-bloc {
-    color: #51a5e1;
+  .bloc-color {
+    color: var(--bloc-color);
   }
 }
