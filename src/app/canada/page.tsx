@@ -24,25 +24,22 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-white min-h-screen mb-8 flex flex-col px-4">
-      <h1 className="m-auto text-3xl w-fit mt-8 text-center py-2 shadow-b-lg">
-        Canada Election Map - Prediction 2025
+    <div className="bg-white min-h-screen mb-8 flex flex-col">
+      <h1 className="m-auto text-3xl w-fit mt-8 text-center py-2 shadow-b-lg font-bold text-[var(--apollo-primary)]">
+        Canada Federal Elections
       </h1>
       <div className="h-[70vh] flex flex-row justify-center mb-4 relative">
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
-            <SidebarTrigger className="absolute top-4 left-2 z-50" />
-            <div className="flex justify-center min-h-0 flex-col pl-4 relative h-[70vh]">
+            <SidebarTrigger className="absolute top-4 z-2 h-[70vh] " />
+            <div className="flex justify-center min-h-0 flex-col relative h-[70vh]">
               <InteractiveMap onRegionClick={handleRegionClick} />
             </div>
-            {/* <div className="grow w-2/11">
-              <ApolloInsightsSection />
-            </div> */}
           </SidebarInset>
         </SidebarProvider>
       </div>
-      <div className="my-2">
+      <div className="my-2 px-12">
         <RidingsSection />
       </div>
       <div>

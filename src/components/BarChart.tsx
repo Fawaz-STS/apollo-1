@@ -1,100 +1,94 @@
 "use client";
-
-import { TrendingUp } from "lucide-react";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
-
+import React, { useEffect, useState } from "react";
+import Papa from "papaparse";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
-];
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "hsl(var(--chart-1))",
-  },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "hsl(var(--chart-3))",
-  },
-  edge: {
-    label: "Edge",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig;
+  "Conserv.": { label: "Conserv.", color: "var(--conservative-color)" },
+  Liberal: { label: "Liberal", color: "var(--liberal-color)" },
+  NDP: { label: "NDP", color: "var(--ndp-color)" },
+  Bloc: { label: "Bloc", color: "var(--bloc-color)" },
+  Green: { label: "Green", color: "var(--green-color)" },
+};
 
 export function BarChartComponent() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch("/data/Info For Drawer(Sheet1).csv");
+      const csvText = await response.text();
+      Papa.parse(csvText, {
+        complete: (results) => {
+          const rows = results.data as string[][];
+          const formattedData = rows.slice(1, 7).map((row) => ({
+            party: row[0],
+            seats: Number(row[3]),
+            label:
+              chartConfig[row[0] as keyof typeof chartConfig]?.label || row[0],
+            color:
+              chartConfig[row[0] as keyof typeof chartConfig]?.color ||
+              "#8884d8",
+          }));
+          setData(formattedData);
+        },
+        header: false,
+      });
+    };
+    fetchData();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bar Chart - Mixed</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Seats by Party</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart
-            accessibilityLayer
-            data={chartData}
-            layout="vertical"
-            margin={{
-              left: 0,
-            }}
-          >
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data} layout="vertical">
             <YAxis
-              dataKey="browser"
+              dataKey="party"
               type="category"
               tickLine={false}
-              tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) =>
-                chartConfig[value as keyof typeof chartConfig]?.label
-              }
+              width={100}
             />
-            <XAxis dataKey="visitors" type="number" hide />
-            <ChartTooltip
+            <XAxis dataKey="seats" type="number" hide />
+            <Tooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={({ active, payload }) => {
+                if (!active || !payload || !payload.length) return null;
+                const p = payload[0];
+                const party = p.payload.party as keyof typeof chartConfig;
+                const value = p.value as number | undefined;
+                if (!party || !(party in chartConfig) || value === undefined)
+                  return null;
+                return (
+                  <div className="bg-white/95 text-black rounded shadow-lg px-4 py-2 text-sm">
+                    <div style={{ color: chartConfig[party].color }}>
+                      {chartConfig[party].label}: {value.toLocaleString()} seats
+                    </div>
+                  </div>
+                );
+              }}
             />
-            <Bar dataKey="visitors" layout="vertical" radius={5} />
+            <Bar dataKey="seats" radius={5} fill="#8884d8">
+              {data.map((entry, idx) => (
+                <Cell key={entry.party} fill={entry.color} />
+              ))}
+            </Bar>
           </BarChart>
-        </ChartContainer>
+        </ResponsiveContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter>
     </Card>
   );
 }

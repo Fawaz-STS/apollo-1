@@ -51,15 +51,15 @@ export const VoteOverview = () => {
   const getPartyColor = (party: string): string => {
     switch (party) {
       case "Conservative":
-        return "#142f52";
+        return "var(--conservative-color)";
       case "Liberal":
-        return "#d41f27";
+        return "var(--liberal-color)";
       case "NDP":
-        return "#f58220";
+        return "var(--ndp-color)";
       case "Bloc":
-        return "#51a5e1";
+        return "var(--bloc-color)";
       case "Green":
-        return "#20a242";
+        return "var(--green-color)";
       default:
         return "#808080";
     }

@@ -3,8 +3,14 @@ import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import "@/app/styles.css";
 import { TbAdjustments } from "react-icons/tb";
-import { MdZoomOut } from "react-icons/md";
-
+import { MdOutlineZoomInMap } from "react-icons/md";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 interface InteractiveMapProps {
   onRegionClick: (region: string) => void;
 }
@@ -27,7 +33,9 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
   const zoomRef = useRef<any>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
   const availableYears = [2015, 2019, 2021, 2023, 2025];
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(
+    Math.max(...availableYears)
+  );
   const [selectedRidingId, setSelectedRidingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"Ridings" | "Gradient">("Ridings");
   const [displayMode, setDisplayMode] = useState<"Straight" | "Battleground">(
@@ -35,6 +43,12 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
   );
   const [showOptions, setShowOptions] = useState(false);
   const isFirstLoad = useRef(true);
+  const [tooltip, setTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    content: React.ReactNode;
+  }>({ visible: false, x: 0, y: 0, content: null });
 
   const handleZoomOut = () => {
     if (!svgRef.current || !gRef.current || !zoomRef.current) {
@@ -80,37 +94,25 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
       undefined
     >;
 
-    const tooltip = d3
-      .select("body")
-      .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("padding", "8px")
-      .style("background", "rgba(0, 0, 0, 0.75)")
-      .style("color", "white")
-      .style("border-radius", "4px")
-      .style("pointer-events", "none")
-      .style("font-family", "sans-serif")
-      .style("font-size", "13px")
-      .style("display", "none");
-
-    const svgWidth = svg?.node()?.clientWidth ?? 800;
-    const svgHeight = svg?.node()?.clientHeight ?? 600;
-
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([1, 20])
-      .filter((event) => event.type !== "wheel")
-      .translateExtent([
-        [-100, -100],
-        [svgWidth + 100, svgHeight + 100],
-      ])
-      .on("zoom", (event) => {
-        g.attr("transform", event.transform);
-      });
-
-    svg.call(zoom);
-    zoomRef.current = zoom;
+    // Only declare zoom once
+    if (!zoomRef.current) {
+      const zoom = d3
+        .zoom<SVGSVGElement, unknown>()
+        .scaleExtent([1, 20])
+        .filter((event) => event.type !== "wheel")
+        .translateExtent([
+          [-100, -100],
+          [
+            svg.node()?.clientWidth ?? 800 + 100,
+            svg.node()?.clientHeight ?? 600 + 100,
+          ],
+        ])
+        .on("zoom", (event) => {
+          g.attr("transform", event.transform);
+        });
+      svg.call(zoom);
+      zoomRef.current = zoom;
+    }
 
     const filename = () => {
       if (viewMode === "Ridings" && displayMode === "Straight") {
@@ -138,15 +140,11 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
 
         selection
           .style("transition", "filter 0.2s ease")
-          .on("mouseover", function () {
+          .on("mouseover", function (event) {
             d3.select(this).style("filter", "brightness(1.2)");
-            tooltip.style("display", "block");
-          })
-          .on("mousemove", function (event) {
             const path = d3.select(this);
             const riding = path.attr("data-ed_namee") || "Unknown";
             const incumbent = path.attr("data-incumbent") || "";
-
             const candidates = [];
             for (let i = 1; i <= 5; i++) {
               const name = path.attr(`data-name${i}`);
@@ -156,42 +154,44 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
                 path.attr(`data-color${i}`) ||
                 (party && colorMap[party as PartyKey]) ||
                 colorMap.Other;
-
               if (name && vote) candidates.push({ name, vote, color });
             }
-
-            const candidateRows = candidates
-              .map(
-                (c) => `
-              <div class="tooltip-row">
-                <span class="color-box" style="background:${c.color}"></span>
-                <span class="candidate-name">${c.name}</span>
-                <span class="vote">${c.vote}</span>
-              </div>`
-              )
-              .join("");
-
-            tooltip
-              .html(
-                `
-              <div class="tooltip-header">
-                <strong>${riding}</strong>
-                <span class="swing-icon">📊</span> <span class="swing-label">Vote %</span>
-              </div>
-              <div class="tooltip-body">${candidateRows}</div>
-              <hr/>
-              <div class="tooltip-incumbent">
-                <span class="incumbent-icon">🟥</span> ${incumbent}
-                <div class="incumbent-label">[this would be the incumbent's name]</div>
-              </div>
-            `
-              )
-              .style("left", `${event.pageX + 10}px`)
-              .style("top", `${event.pageY + 10}px`);
+            setTooltip({
+              visible: true,
+              x: event.pageX,
+              y: event.pageY,
+              content: (
+                <div>
+                  <div className="font-bold mb-1">{riding}</div>
+                  <div className="mb-1">
+                    {candidates.map((c, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        <span
+                          className="inline-block w-3 h-3 rounded-sm"
+                          style={{ background: c.color }}
+                        ></span>
+                        <span>{c.name}</span>
+                        <span className="ml-2 font-mono">{c.vote}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    <span className="font-semibold">Incumbent:</span>{" "}
+                    {incumbent}
+                  </div>
+                </div>
+              ),
+            });
+          })
+          .on("mousemove", function (event) {
+            setTooltip((t) => ({ ...t, x: event.pageX, y: event.pageY }));
           })
           .on("mouseout", function () {
             d3.select(this).style("filter", "none");
-            tooltip.style("display", "none");
+            setTooltip((t) => ({ ...t, visible: false }));
           })
           .on("click", function (event: MouseEvent) {
             const path = d3.select(event.currentTarget as SVGGraphicsElement);
@@ -206,8 +206,8 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
 
             // Zoom behavior
             const bbox = (event.currentTarget as SVGGraphicsElement).getBBox();
-            const svgWidth = svg?.node()?.clientWidth ?? 800;
-            const svgHeight = svg?.node()?.clientHeight ?? 600;
+            const svgWidth = svgRef.current?.clientWidth ?? 800;
+            const svgHeight = svgRef.current?.clientHeight ?? 600;
             const scale =
               0.8 * Math.min(svgWidth / bbox.width, svgHeight / bbox.height);
             const translateX = svgWidth / 2 - (bbox.x + bbox.width / 2) * scale;
@@ -217,7 +217,10 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
             const transform = d3.zoomIdentity
               .translate(translateX, translateY)
               .scale(scale);
-            svg.transition().duration(750).call(zoom.transform, transform);
+            svg
+              .transition()
+              .duration(750)
+              .call(zoomRef.current.transform, transform);
           });
 
         if (shouldCenter) {
@@ -240,7 +243,7 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
               // Store the base transform for zoom out
               baseTransform.current = transform;
 
-              svg.call(zoom.transform, transform);
+              svg.call(zoomRef.current.transform, transform);
             }
           }, 0);
         }
@@ -254,20 +257,20 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
   return (
     <div className="interactive-map-root h-full w-full min-h-0 min-w-0 flex flex-col relative p-4">
       <button
-        className="absolute top-8 left-6 p-2 rounded-full bg-gray-600 text-white hover:bg-blue-700 shadow transition z-10"
+        className="absolute top-8 left-10 p-2 rounded-full bg-gray-600 text-white hover:bg-blue-700 shadow transition z-10"
         onClick={() => setShowOptions(!showOptions)}
         title="Toggle Options"
       >
         <TbAdjustments size={20} />
       </button>
       <button
-        className="absolute top-20 left-6 p-2 rounded-full bg-gray-600 text-white hover:bg-blue-700 shadow transition z-10"
+        className="absolute bottom-10 left-10 p-2 rounded-full bg-gray-600 text-white hover:bg-blue-700 shadow transition z-10"
         onClick={() => {
           handleZoomOut();
         }}
         title="Zoom Out"
       >
-        <MdZoomOut size={20} />
+        <MdOutlineZoomInMap size={20} />
       </button>
       {showOptions && (
         <div
@@ -277,7 +280,7 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
         >
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <span className="toggle-label">Straight</span>
+              <span className="toggle-label">Normal</span>
               <label className="switch">
                 <input
                   type="checkbox"
@@ -304,25 +307,31 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
               </label>
               <span className="toggle-label">Gradient</span>
             </div>
-            <div className="year-select">
-              <label htmlFor="year">Select Year:</label>
-              <input
-                type="text"
-                id="year"
-                list="year-options"
-                value={selectedYear ?? ""}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (!isNaN(val)) setSelectedYear(val);
-                  else setSelectedYear(null);
-                }}
-                placeholder="e.g., 2025"
-              />
-              <datalist id="year-options">
-                {availableYears.map((year) => (
-                  <option key={year} value={year.toString()} />
-                ))}
-              </datalist>
+            <div className="year-select flex items-center gap-2">
+              <label htmlFor="year" className="block mb-0">
+                Select Year:
+              </label>
+              <Select
+                value={selectedYear.toString()}
+                onValueChange={(val) => setSelectedYear(Number(val))}
+              >
+                <SelectTrigger className="w-[120px] bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2">
+                  <SelectValue className="text-black" />
+                </SelectTrigger>
+                <SelectContent className="z-[9999] bg-white border border-gray-200 rounded shadow-lg">
+                  {[...availableYears]
+                    .sort((a, b) => b - a)
+                    .map((year) => (
+                      <SelectItem
+                        key={year}
+                        value={year.toString()}
+                        className="hover:bg-blue-100 focus:bg-blue-200"
+                      >
+                        {year}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -335,6 +344,14 @@ const InteractiveMap = ({ onRegionClick }: InteractiveMapProps) => {
       >
         <g ref={gRef} />
       </svg>
+      {tooltip.visible && (
+        <div
+          className="fixed pointer-events-none z-[99999] bg-white/95 text-black rounded shadow-lg px-4 py-2 text-sm"
+          style={{ left: tooltip.x + 10, top: tooltip.y + 10 }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </div>
   );
 };
